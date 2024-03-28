@@ -1,0 +1,11 @@
+[Unit]
+Description=PostgreSQL Role Check Service
+After=network.target
+
+[Service]
+User=postgres
+Group=postgres
+ExecStart=/usr/local/bin/pgrolecheck
+
+[Install]
+WantedBy=multi-user.target

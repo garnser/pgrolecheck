@@ -1,0 +1,81 @@
+.TH PGROLECHECK 1
+.SH NAME
+pgrolecheck \- Check the role of a PostgreSQL server.
+.SH SYNOPSIS
+.B pgrolecheck
+.RI [ options ]
+.SH DESCRIPTION
+pgrolecheck is a tool to check whether a PostgreSQL server is running as a primary server or a standby replica. It provides a web interface accessible over HTTPS.
+.SH OPTIONS
+.TP
+.B \-f
+Run in foreground and log to STDOUT.
+.SH CONFIGURATION FILE
+The configuration file for pgrolecheck is located at 
+.B /etc/pgrolecheck/pgrolecheck.conf
+. This file controls various aspects of pgrolecheck's behavior.
+
+The configuration file consists of several sections:
+
+.TP
+.B [database]
+Specifies the database connection parameters.
+.RS
+.TP
+.B dbname
+Name of the database to connect to.
+.TP
+.B user
+The user to connect as.
+.TP
+.B password
+Password for the database user.
+.TP
+.B host
+Hostname of the database server. Set to a directory path for Unix socket connections or an IP/hostname for TCP connections.
+.TP
+.B port
+Port number of the database server. Leave empty for Unix socket connections.
+.TP
+.B sslmode
+SSL mode for the database connection.
+.RE
+
+.TP
+.B [server]
+Specifies the web server parameters.
+.RS
+.TP
+.B listen_ip
+The IP address the web server listens on. Use "*" or "0.0.0.0" to listen on all available IPs.
+.TP
+.B https_port
+The port number for HTTPS connections.
+.TP
+.B cert_file
+Path to the SSL certificate file.
+.TP
+.B key_file
+Path to the SSL private key file.
+.RE
+
+.TP
+.B [logging]
+Specifies logging behavior.
+.RS
+.TP
+.B log_file
+Path to the log file. Set to "syslog" to use the system logger, or specify a file path.
+.RE
+
+.SH FILES
+.TP
+.B /etc/pgrolecheck/pgrolecheck.conf
+The main configuration file.
+.SH SEE ALSO
+.BR postgresql (1),
+.BR systemctl (1),
+.BR journalctl (1)
+.SH AUTHOR
+pgrolecheck was written by Jonathan Petersson.
+
