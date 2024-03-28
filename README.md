@@ -102,6 +102,47 @@ If you want to run it in the foreground you can start it with:
 pgrolecheck -f
 ```
 
+## Interacting with PgRoleCheck
+
+PgRoleCheck provides a simple HTTP API that can be interacted with using tools like `curl`. Here's how you can use `curl` to check the role of a PostgreSQL server and the possible responses:
+
+### Checking the Role
+
+To check the role of a PostgreSQL server, send an HTTP GET request to the PgRoleCheck service. For example:
+
+```bash
+curl https://localhost:8443/
+```
+
+### Possible Responses
+If the PostgreSQL server is running as a primary server, the response will be:
+```json
+{"status": "primary"}
+```
+
+If the PostgreSQL server is running as a standby replica, the response will be:
+```json
+{"status": "notprimary"}
+```
+
+If there is an error connecting to or querying the database, the response will be:
+```json
+{"status": "notok"}
+```
+
+## Example Usage
+```bash
+# Check the role of the PostgreSQL server
+$ curl https://localhost:8443/
+{"status": "primary"}
+
+# Check the role of the PostgreSQL server running as a standby replica
+$ curl https://localhost:8443/
+{"status": "notprimary"}
+```
+
+You can use these responses to automate monitoring or integration with other systems.
+
 Ensure you have configured `pgrolecheck.conf` according to your environment before starting the service.
 
 ## Contributing
