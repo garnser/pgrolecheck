@@ -12,15 +12,35 @@ PgRoleCheck is a service designed to check whether a PostgreSQL server is runnin
 
 ## Prerequisites
 
-- Go (1.15 or later recommended)
-- PostgreSQL
-- RPM Build tools (if building RPM packages)
+- Docker
 
 ## Configuration
 
 The service can be configured via the `pgrolecheck.conf` file, which allows specifying database connection details, the web server's listen address and port, SSL certificate details for HTTPS, and logging configuration.
 
-A sample configuration looks like this:
+### Configuration Options
+
+#### Database Configuration
+
+- `dbname`: Name of the database to connect to.
+- `user`: The user to connect as.
+- `password`: Password for the database user.
+- `host`: Hostname or IP address of the database server.
+- `port`: Port number of the database server.
+- `sslmode`: SSL mode for the database connection.
+
+#### Server Configuration
+
+- `listen_ip`: The IP address the web server listens on.
+- `https_port`: The port number for HTTPS connections.
+- `cert_file`: Path to the SSL certificate file.
+- `key_file`: Path to the SSL private key file.
+
+#### Logging Configuration
+
+- `log_file`: Path to the log file. Set to "syslog" to use the system logger, or specify a file path.
+
+### Sample Configuration
 
 ```ini
 [database]
