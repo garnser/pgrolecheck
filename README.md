@@ -54,14 +54,8 @@ go build -o pgrolecheck main.go
 ### Building RPM Package
 To package PgRoleCheck as an RPM:
 
-1. Ensure you have RPM build tools installed.
-2. Run `make rpm` from the root of the repository. This will generate an RPM in the ./rpms directory.
-
-### Docker Build
-You can also build PgRoleCheck using Docker:
-
-1. Build the Docker image: make docker.
-2. Then, you can build the RPM using the created Docker image: make rpm.
+1. Build the Docker image: `make docker`.
+2. Then, you can build the RPM using the created Docker image: `make rpm`.
 
 ## Installation
 After building the RPM package, install it with:
@@ -70,11 +64,22 @@ After building the RPM package, install it with:
 sudo dnf install ./rpms/x86_64/pgrolecheck-1.0.0-1.el9.x86_64.rpm
 ```
 
+or using
+```bash
+make install
+```
+
 ## Running PgRoleCheck
 After installation, PgRoleCheck can be started with:
 
 ```bash
 systemctl start pgrolecheck
+```
+
+If you want to run it in the foreground you can start it with:
+
+```bash
+pgrolecheck -f
 ```
 
 Ensure you have configured `pgrolecheck.conf` according to your environment before starting the service.
