@@ -23,10 +23,11 @@ var configMap = map[string]*struct {
     "port":        {flag.String("port", "", "Database port"), &cfg.Port},
     "sslmode":     {flag.String("sslmode", "", "Database SSL mode"), &cfg.SslMode},
     "listen_ip":   {flag.String("listenip", "", "Server listen IP"), &cfg.ListenIP},
-    "https_port":  {flag.String("httpsport", "", "HTTPS port"), &cfg.HttpsPort},
+    "use_ssl":     {flag.String("usessl", "", "SSL Mode"), &cfg.UseSSL},
+    "http_port":   {flag.String("httpport", "8443", "HTTP port"), &cfg.HttpPort},
     "cert_file":   {flag.String("certfile", "", "SSL certificate file"), &cfg.CertFile},
     "key_file":    {flag.String("keyfile", "", "SSL key file"), &cfg.KeyFile},
-    "log_file":    {flag.String("logfile", "", "Log file path"), &cfg.LogFilePath},
+    "log_file":    {flag.String("logfile", "/var/log/pgrolecheck.log", "Log file path"), &cfg.LogFilePath},
 }
 
 type Configuration struct {
@@ -37,7 +38,8 @@ type Configuration struct {
 	Port        string
 	SslMode     string
 	ListenIP    string
-	HttpsPort   string
+  UseSSL      string
+	HttpPort    string
 	CertFile    string
 	KeyFile     string
 	LogFilePath string
@@ -59,7 +61,8 @@ func LoadConfigurationFromFile(path string) error {
     // Continue for the rest of your database settings
 
     cfg.ListenIP = conf.Section("server").Key("listen_ip").String()
-    cfg.HttpsPort = conf.Section("server").Key("https_port").String()
+    cfg.UseSSL = conf.Section("server").Key("use_ssl").String()
+    cfg.HttpPort = conf.Section("server").Key("http_port").String()
     cfg.CertFile = conf.Section("server").Key("cert_file").String()
     cfg.KeyFile = conf.Section("server").Key("key_file").String()
     // Assuming these are the correct keys under the [server] section

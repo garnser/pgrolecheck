@@ -32,8 +32,11 @@ SSL mode for the database connection. Options include disable, require, verify-c
 .B \-\-listenip
 The IP address the web server listens on. Use "*" or "0.0.0.0" to listen on all available IPs.
 .TP
-.B \-\-httpsport
-The port number for HTTPS connections.
+.B \-\-usessl
+Enable SSL for the webserver.
+.TP
+.B \-\-httpport
+The port number for HTTP(S) connections.
 .TP
 .B \-\-certfile
 Path to the SSL certificate file.
@@ -47,7 +50,7 @@ Path to the log file. Set to "syslog" to use the system logger, or specify a fil
 .B \-f
 Run in foreground and log to STDOUT.
 .SH CONFIGURATION FILE
-The configuration file for pgrolecheck is located at 
+The configuration file for pgrolecheck is located at
 .B /etc/pgrolecheck/pgrolecheck.conf
 . This file controls various aspects of pgrolecheck's behavior and can be overridden by command-line options.
 .PP
@@ -84,8 +87,11 @@ Specifies the web server parameters for handling HTTP requests.
 .B listen_ip
 IP address to bind the web server. "*" or "0.0.0.0" listens on all interfaces, whereas specifying an IP restricts it to that IP.
 .TP
-.B https_port
-Port number on which the server accepts HTTPS connections. Ensure this port is open in the firewall.
+.B use_ssl
+Enable SSL for the web server.
+.TP
+.B http_port
+Port number on which the server accepts HTTP(S) connections. Ensure this port is open in the firewall.
 .TP
 .B cert_file
 Path to the SSL certificate file for HTTPS. Required for establishing secure connections.
@@ -111,4 +117,3 @@ The main configuration file.
 .BR journalctl (1)
 .SH AUTHOR
 pgrolecheck was written by Jonathan Petersson.
-
