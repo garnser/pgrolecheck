@@ -5,69 +5,102 @@ pgrolecheck \- Check the role of a PostgreSQL server.
 .B pgrolecheck
 .RI [ options ]
 .SH DESCRIPTION
-pgrolecheck is a tool to check whether a PostgreSQL server is running as a primary server or a standby replica. It provides a web interface accessible over HTTPS.
+pgrolecheck is a tool to check whether a PostgreSQL server is running as a primary server or a standby replica. It provides a web interface accessible over HTTPS, offering a simple HTTP GET endpoint that returns the current role of the PostgreSQL server.
 .SH OPTIONS
+.TP
+.B \-\-config
+Specify the path to the configuration file. Default is /etc/pgrolecheck/pgrolecheck.conf.
+.TP
+.B \-\-dbname
+Name of the database to connect to.
+.TP
+.B \-\-user
+The user to connect as.
+.TP
+.B \-\-password
+Password for the database user.
+.TP
+.B \-\-host
+Hostname of the database server. Set to a directory path for Unix socket connections or an IP/hostname for TCP connections.
+.TP
+.B \-\-port
+Port number of the database server. Leave empty for Unix socket connections.
+.TP
+.B \-\-sslmode
+SSL mode for the database connection. Options include disable, require, verify-ca, and verify-full.
+.TP
+.B \-\-listenip
+The IP address the web server listens on. Use "*" or "0.0.0.0" to listen on all available IPs.
+.TP
+.B \-\-httpsport
+The port number for HTTPS connections.
+.TP
+.B \-\-certfile
+Path to the SSL certificate file.
+.TP
+.B \-\-keyfile
+Path to the SSL private key file.
+.TP
+.B \-\-logfile
+Path to the log file. Set to "syslog" to use the system logger, or specify a file path.
 .TP
 .B \-f
 Run in foreground and log to STDOUT.
 .SH CONFIGURATION FILE
 The configuration file for pgrolecheck is located at 
 .B /etc/pgrolecheck/pgrolecheck.conf
-. This file controls various aspects of pgrolecheck's behavior.
-
-The configuration file consists of several sections:
-
+. This file controls various aspects of pgrolecheck's behavior and can be overridden by command-line options.
+.PP
+The configuration file consists of several sections with specific parameters:
+.RS
 .TP
 .B [database]
 Specifies the database connection parameters.
 .RS
 .TP
 .B dbname
-Name of the database to connect to.
+Name of the database to connect to. Essential for establishing the database connection.
 .TP
 .B user
-The user to connect as.
+Database user for authentication. Required for accessing the database.
 .TP
 .B password
-Password for the database user.
+Password for the specified database user. Ensure this is kept secure.
 .TP
 .B host
-Hostname of the database server. Set to a directory path for Unix socket connections or an IP/hostname for TCP connections.
+Hostname or directory of the database server. Use a directory path for Unix domain socket connections or a hostname/IP for TCP/IP connections.
 .TP
 .B port
-Port number of the database server. Leave empty for Unix socket connections.
+Database server port. Essential for TCP/IP connections. For Unix domain sockets, this can be left empty or set to the default port (5432).
 .TP
 .B sslmode
-SSL mode for the database connection.
+Determines SSL usage for the connection. Options: disable, require, verify-ca, verify-full. "disable" is common for local connections.
 .RE
-
 .TP
 .B [server]
-Specifies the web server parameters.
+Specifies the web server parameters for handling HTTP requests.
 .RS
 .TP
 .B listen_ip
-The IP address the web server listens on. Use "*" or "0.0.0.0" to listen on all available IPs.
+IP address to bind the web server. "*" or "0.0.0.0" listens on all interfaces, whereas specifying an IP restricts it to that IP.
 .TP
 .B https_port
-The port number for HTTPS connections.
+Port number on which the server accepts HTTPS connections. Ensure this port is open in the firewall.
 .TP
 .B cert_file
-Path to the SSL certificate file.
+Path to the SSL certificate file for HTTPS. Required for establishing secure connections.
 .TP
 .B key_file
-Path to the SSL private key file.
+Path to the SSL private key file. Must correspond to the certificate file for successful SSL encryption.
 .RE
-
 .TP
 .B [logging]
-Specifies logging behavior.
+Defines how pgrolecheck logs its operations.
 .RS
 .TP
 .B log_file
-Path to the log file. Set to "syslog" to use the system logger, or specify a file path.
+Path to where logs are written. Setting this to "syslog" uses the system logger. Otherwise, specify a filesystem path for logging to a file. Ensure the application has write permissions to the file or directory.
 .RE
-
 .SH FILES
 .TP
 .B /etc/pgrolecheck/pgrolecheck.conf

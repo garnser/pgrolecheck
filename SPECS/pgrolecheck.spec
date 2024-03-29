@@ -1,5 +1,5 @@
 Name:           pgrolecheck
-Version:        1.0.0
+Version:        %{version}
 Release:        1%{?dist}
 Summary:        A service to check the role of a PostgreSQL server.
 License:        MIT
@@ -19,7 +19,7 @@ pgrolecheck is a service that checks whether a PostgreSQL server is running as a
 
 %build
 go mod tidy
-go build -o %{name} main.go
+go build -o %{name} .
 
 %install
 mkdir -p %{buildroot}/usr/local/bin
