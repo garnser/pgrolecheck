@@ -12,15 +12,35 @@ PgRoleCheck is a service designed to check whether a PostgreSQL server is runnin
 
 ## Prerequisites
 
-- Go (1.15 or later recommended)
-- PostgreSQL
-- RPM Build tools (if building RPM packages)
+- Docker
 
 ## Configuration
 
 The service can be configured via the `pgrolecheck.conf` file, which allows specifying database connection details, the web server's listen address and port, SSL certificate details for HTTPS, and logging configuration.
 
-A sample configuration looks like this:
+### Configuration Options
+
+#### Database Configuration
+
+- `dbname`: Name of the database to connect to.
+- `user`: The user to connect as.
+- `password`: Password for the database user.
+- `host`: Hostname or IP address of the database server.
+- `port`: Port number of the database server.
+- `sslmode`: SSL mode for the database connection.
+
+#### Server Configuration
+
+- `listen_ip`: The IP address the web server listens on.
+- `https_port`: The port number for HTTPS connections.
+- `cert_file`: Path to the SSL certificate file.
+- `key_file`: Path to the SSL private key file.
+
+#### Logging Configuration
+
+- `log_file`: Path to the log file. Set to "syslog" to use the system logger, or specify a file path.
+
+### Sample Configuration
 
 ```ini
 [database]
@@ -54,14 +74,8 @@ go build -o pgrolecheck main.go
 ### Building RPM Package
 To package PgRoleCheck as an RPM:
 
-1. Ensure you have RPM build tools installed.
-2. Run `make rpm` from the root of the repository. This will generate an RPM in the ./rpms directory.
-
-### Docker Build
-You can also build PgRoleCheck using Docker:
-
-1. Build the Docker image: make docker.
-2. Then, you can build the RPM using the created Docker image: make rpm.
+1. Build the Docker image: `make docker`.
+2. Then, you can build the RPM using the created Docker image: `make rpm`.
 
 ## Installation
 After building the RPM package, install it with:
@@ -70,12 +84,64 @@ After building the RPM package, install it with:
 sudo dnf install ./rpms/x86_64/pgrolecheck-1.0.0-1.el9.x86_64.rpm
 ```
 
+or using
+```bash
+make install
+```
+
 ## Running PgRoleCheck
 After installation, PgRoleCheck can be started with:
 
 ```bash
 systemctl start pgrolecheck
 ```
+
+If you want to run it in the foreground you can start it with:
+
+```bash
+pgrolecheck -f
+```
+
+## Interacting with PgRoleCheck
+
+PgRoleCheck provides a simple HTTP API that can be interacted with using tools like `curl`. Here's how you can use `curl` to check the role of a PostgreSQL server and the possible responses:
+
+### Checking the Role
+
+To check the role of a PostgreSQL server, send an HTTP GET request to the PgRoleCheck service. For example:
+
+```bash
+curl https://localhost:8443/
+```
+
+### Possible Responses
+If the PostgreSQL server is running as a primary server, the response will be:
+```json
+{"status": "primary"}
+```
+
+If the PostgreSQL server is running as a standby replica, the response will be:
+```json
+{"status": "notprimary"}
+```
+
+If there is an error connecting to or querying the database, the response will be:
+```json
+{"status": "notok"}
+```
+
+## Example Usage
+```bash
+# Check the role of the PostgreSQL server
+$ curl https://localhost:8443/
+{"status": "primary"}
+
+# Check the role of the PostgreSQL server running as a standby replica
+$ curl https://localhost:8443/
+{"status": "notprimary"}
+```
+
+You can use these responses to automate monitoring or integration with other systems.
 
 Ensure you have configured `pgrolecheck.conf` according to your environment before starting the service.
 
