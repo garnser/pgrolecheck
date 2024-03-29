@@ -14,7 +14,7 @@ func main() {
     if err := LoadConfigurationFromFile(*ConfigPath); err != nil {
         log.Fatalf("Failed to load configuration: %v", err)
     }
-    
+
     OverrideConfigurationWithFlags()
 
     logFile := SetupLogging(cfg.LogFilePath, *Foreground)

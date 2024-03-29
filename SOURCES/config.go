@@ -53,8 +53,9 @@ func LoadConfigurationFromFile(path string) error {
     cfg.DbName = conf.Section("database").Key("dbname").String()
     cfg.User = conf.Section("database").Key("user").String()
     cfg.Password = conf.Section("database").Key("password").String()
-    cfg.SslMode = conf.Section("database").Key("sslmode").String()
+    cfg.Host = conf.Section("database").Key("host").String()
     cfg.Port = conf.Section("database").Key("port").String()
+    cfg.SslMode = conf.Section("database").Key("sslmode").String()
     // Continue for the rest of your database settings
 
     cfg.ListenIP = conf.Section("server").Key("listen_ip").String()
@@ -77,4 +78,3 @@ func OverrideConfigurationWithFlags() {
         }
     }
 }
-
