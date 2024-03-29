@@ -1,6 +1,6 @@
 # PgRoleCheck
 
-PgRoleCheck is a service designed to check whether a PostgreSQL server is running as a primary server or a standby replica. It provides a web interface accessible over HTTPS, offering an easy way to monitor the role of your PostgreSQL instances.
+PgRoleCheck is a service designed to check whether a PostgreSQL server is running as a primary server or a standby replica. It provides a web interface accessible over HTTP(S), offering an easy way to monitor the role of your PostgreSQL instances.
 
 ## Features
 
@@ -12,7 +12,7 @@ PgRoleCheck is a service designed to check whether a PostgreSQL server is runnin
 
 ## Prerequisites
 
-- Docker
+- Postgresql
 
 ## Configuration
 
@@ -32,6 +32,7 @@ The service can be configured via the `pgrolecheck.conf` file, which allows spec
 #### Server Configuration
 
 - `listen_ip`: The IP address the web server listens on.
+- `use_ssl`: Enable SSL for the web server.
 - `https_port`: The port number for HTTPS connections.
 - `cert_file`: Path to the SSL certificate file.
 - `key_file`: Path to the SSL private key file.
@@ -53,6 +54,7 @@ sslmode=disable
 
 [server]
 listen_ip=0.0.0.0
+use_ssl=true
 https_port=8443
 cert_file=path/to/cert.pem
 key_file=path/to/key.pem
