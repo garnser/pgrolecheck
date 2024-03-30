@@ -1,42 +1,27 @@
 .TH PGROLECHECK 1
 .SH NAME
-pgrolecheck \- Check the role of a PostgreSQL server.
+pgrolecheck \- Check the roles of PostgreSQL servers.
 .SH SYNOPSIS
 .B pgrolecheck
 .RI [ options ]
 .SH DESCRIPTION
-pgrolecheck is a tool to check whether a PostgreSQL server is running as a primary server or a standby replica. It provides a web interface accessible over HTTP(S), offering a simple HTTP GET endpoint that returns the current role of the PostgreSQL server.
+pgrolecheck is a tool to check whether PostgreSQL servers are running as primary servers or standby replicas. It provides a web interface accessible over HTTP(S), offering a simple HTTP GET endpoint that returns the current roles of the PostgreSQL servers in JSON or CSV format.
 .SH OPTIONS
 .TP
 .B \-\-config
 Specify the path to the configuration file. Default is /etc/pgrolecheck/pgrolecheck.conf.
 .TP
-.B \-\-dbname
-Name of the database to connect to.
-.TP
-.B \-\-user
-The user to connect as.
-.TP
-.B \-\-password
-Password for the database user.
-.TP
-.B \-\-host
-Hostname of the database server. Set to a directory path for Unix socket connections or an IP/hostname for TCP connections.
-.TP
-.B \-\-port
-Port number of the database server. Leave empty for Unix socket connections.
-.TP
-.B \-\-sslmode
-SSL mode for the database connection. Options include disable, require, verify-ca, and verify-full.
+.B \-\-dbconfig
+Specify database configuration as a JSON string. Can be used multiple times for multiple databases. Example: \-\-dbconfig '{"Name":"db1","DbName":"postgres","User":"user","Password":"password","Host":"localhost","Port":"5432","SslMode":"disable"}'
 .TP
 .B \-\-listenip
 The IP address the web server listens on. Use "*" or "0.0.0.0" to listen on all available IPs.
 .TP
-.B \-\-usessl
-Enable SSL for the webserver.
-.TP
 .B \-\-httpport
 The port number for HTTP(S) connections.
+.TP
+.B \-\-usessl
+Enable SSL for the webserver. Specify "true" to enable.
 .TP
 .B \-\-certfile
 Path to the SSL certificate file.
@@ -46,6 +31,9 @@ Path to the SSL private key file.
 .TP
 .B \-\-logfile
 Path to the log file. Set to "syslog" to use the system logger, or specify a file path.
+.TP
+.B \-\-outputformat
+Specifies the output format of the web service. Options are "json" (default) and "csv".
 .TP
 .B \-f
 Run in foreground and log to STDOUT.
@@ -57,8 +45,8 @@ The configuration file for pgrolecheck is located at
 The configuration file consists of several sections with specific parameters:
 .RS
 .TP
-.B [database]
-Specifies the database connection parameters.
+.B [database_db1], [database_db2], ...
+Specifies the database connection parameters for multiple databases. Repeat the section with unique names for each database.
 .RS
 .TP
 .B dbname
@@ -98,6 +86,9 @@ Path to the SSL certificate file for HTTPS. Required for establishing secure con
 .TP
 .B key_file
 Path to the SSL private key file. Must correspond to the certificate file for successful SSL encryption.
+.TP
+.B output_format
+Specifies the output format for the web service. Default is "json". Options: "json", "csv".
 .RE
 .TP
 .B [logging]

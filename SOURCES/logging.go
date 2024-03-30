@@ -10,6 +10,9 @@ import (
 )
 
 func SetupLogging(logFilePath string, foreground bool) *os.File {
+    // Debug statement to print the log file path
+    fmt.Printf("Debug: Attempting to set up logging with LogFilePath: '%s'\n", logFilePath)
+
     var logOutput io.Writer
     var logFile *os.File
 
@@ -20,22 +23,24 @@ func SetupLogging(logFilePath string, foreground bool) *os.File {
             os.Exit(1)
         }
         logOutput = logwriter
-    } else {
+    } else if logFilePath != "" {
         var err error
         logFile, err = os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
         if err != nil {
-            fmt.Println("Failed to open log file:", err)
+            fmt.Printf("Failed to open log file: '%s', Error: %v\n", logFilePath, err)
             os.Exit(1)
         }
-
         if foreground {
             logOutput = io.MultiWriter(os.Stdout, logFile)
         } else {
             logOutput = logFile
         }
+    } else {
+        // If logFilePath is not defined, fallback to stdout
+        fmt.Println("Debug: No LogFilePath specified, defaulting to stdout")
+        logOutput = os.Stdout
     }
 
     log.SetOutput(logOutput)
     return logFile
 }
-

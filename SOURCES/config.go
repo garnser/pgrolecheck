@@ -2,82 +2,134 @@
 package main
 
 import (
-	"flag"
-	"gopkg.in/ini.v1"
+    "flag"
+    "fmt"
+    "gopkg.in/ini.v1"
+    "reflect"
+    "strings"
 )
 
 var (
-    cfg Configuration
-    ConfigPath = flag.String("config", "/etc/pgrolecheck/pgrolecheck.conf", "Path to configuration file")
-    Foreground = flag.Bool("f", false, "Run in foreground and log to STDOUT")
+    cfg          Configuration
+    ConfigPath   = flag.String("config", "/etc/pgrolecheck/pgrolecheck.conf", "Path to configuration file")
+    dbConfigsJSON JSONConfigs
+    Foreground   bool
 )
 
-var configMap = map[string]*struct {
-    flagValue *string
-    cfgField  *string
-}{
-    "dbname":      {flag.String("dbname", "", "Database name"), &cfg.DbName},
-    "user":        {flag.String("user", "", "Database user"), &cfg.User},
-    "password":    {flag.String("password", "", "Database password"), &cfg.Password},
-    "host":        {flag.String("host", "", "Database host"), &cfg.Host},
-    "port":        {flag.String("port", "", "Database port"), &cfg.Port},
-    "sslmode":     {flag.String("sslmode", "", "Database SSL mode"), &cfg.SslMode},
-    "listen_ip":   {flag.String("listenip", "", "Server listen IP"), &cfg.ListenIP},
-    "use_ssl":     {flag.String("usessl", "", "SSL Mode"), &cfg.UseSSL},
-    "http_port":   {flag.String("httpport", "8443", "HTTP port"), &cfg.HttpPort},
-    "cert_file":   {flag.String("certfile", "", "SSL certificate file"), &cfg.CertFile},
-    "key_file":    {flag.String("keyfile", "", "SSL key file"), &cfg.KeyFile},
-    "log_file":    {flag.String("logfile", "/var/log/pgrolecheck.log", "Log file path"), &cfg.LogFilePath},
-}
-
 type Configuration struct {
-	DbName      string
-	User        string
-	Password    string
-	Host        string
-	Port        string
-	SslMode     string
-	ListenIP    string
-  UseSSL      string
-	HttpPort    string
-	CertFile    string
-	KeyFile     string
-	LogFilePath string
+    ListenIP     string `config:"listen_ip" section:"server" default:""`
+    UseSSL       string `config:"use_ssl" section:"server" default:"false"`
+    HttpPort     string `config:"http_port" section:"server" default:"8080"`
+    CertFile     string `config:"cert_file" section:"server" default:""`
+    KeyFile      string `config:"key_file" section:"server" default:""`
+    LogFilePath  string `config:"log_file" section:"logging" default:"/var/log/pgrolecheck.log"`
+    OutputFormat string `config:"output_format" section:"server" default:"json"`
+    Databases    []DBConfig
 }
 
-func LoadConfigurationFromFile(path string) error {
-    conf, err := ini.Load(path)
-    if err != nil {
-        return err
-    }
+type DBConfig struct {
+    Name     string `json:"name"`
+    DbName   string `json:"dbname"`
+    User     string `json:"user"`
+    Password string `json:"password"`
+    Host     string `json:"host"`
+    Port     string `json:"port"`
+    SslMode  string `json:"sslmode"`
+}
 
-    // Correctly load settings based on the actual sections and keys in your INI file
-    cfg.DbName = conf.Section("database").Key("dbname").String()
-    cfg.User = conf.Section("database").Key("user").String()
-    cfg.Password = conf.Section("database").Key("password").String()
-    cfg.Host = conf.Section("database").Key("host").String()
-    cfg.Port = conf.Section("database").Key("port").String()
-    cfg.SslMode = conf.Section("database").Key("sslmode").String()
-    // Continue for the rest of your database settings
+type JSONConfigs []string
 
-    cfg.ListenIP = conf.Section("server").Key("listen_ip").String()
-    cfg.UseSSL = conf.Section("server").Key("use_ssl").String()
-    cfg.HttpPort = conf.Section("server").Key("http_port").String()
-    cfg.CertFile = conf.Section("server").Key("cert_file").String()
-    cfg.KeyFile = conf.Section("server").Key("key_file").String()
-    // Assuming these are the correct keys under the [server] section
+func (j *JSONConfigs) String() string {
+    return strings.Join(*j, ",")
+}
 
-    cfg.LogFilePath = conf.Section("logging").Key("log_file").String()
-    // Assuming log_file is under the [logging] section
-
+func (j *JSONConfigs) Set(value string) error {
+    *j = append(*j, value)
     return nil
 }
 
-func OverrideConfigurationWithFlags() {
-    // Assume flag.Parse() has already been called
-    for _, value := range configMap {
-        if *value.flagValue != "" {
-            *value.cfgField = *value.flagValue
+func init() {
+    flag.BoolVar(&Foreground, "f", false, "Run in foreground and log to STDOUT")
+    defineConfigurationFlags()
+    flag.Var(&dbConfigsJSON, "dbconfig", "Database configuration as a JSON string")
+}
+
+func defineConfigurationFlags() {
+    t := reflect.TypeOf(cfg)
+    v := reflect.ValueOf(&cfg).Elem()
+
+    for i := 0; i < t.NumField(); i++ {
+        field := t.Field(i)
+        key, hasKey := field.Tag.Lookup("config")
+        defaultValue, hasDefault := field.Tag.Lookup("default")
+
+        if !hasKey || !hasDefault {
+            continue
+        }
+
+        description := fmt.Sprintf("Description for %s", key)
+        switch field.Type.Kind() {
+        case reflect.String:
+            flag.StringVar(v.Field(i).Addr().Interface().(*string), key, defaultValue, description)
         }
     }
+}
+
+func LoadConfigurationFromFile(path string) error {
+    configFile, err := ini.Load(path)
+    if err != nil {
+        return fmt.Errorf("failed to load config file: %w", err)
+    }
+
+    // First, load server and logging configurations as before
+    t := reflect.TypeOf(cfg)
+    v := reflect.ValueOf(&cfg).Elem()
+    for i := 0; i < t.NumField(); i++ {
+        field := t.Field(i)
+        key, hasKey := field.Tag.Lookup("config")
+        section, hasSection := field.Tag.Lookup("section")
+        if !hasKey || !hasSection {
+            continue
+        }
+
+        if sectionValue := configFile.Section(section).Key(key).String(); sectionValue != "" {
+            if field.Type.Kind() == reflect.String {
+                v.Field(i).SetString(sectionValue)
+            }
+        }
+    }
+
+    // Dynamically handle database configurations
+    cfg.Databases = []DBConfig{}
+    dbConfigType := reflect.TypeOf(DBConfig{})
+
+    for _, section := range configFile.Sections() {
+        if strings.HasPrefix(section.Name(), "database_") {
+            dbCfg := DBConfig{}
+            dbCfgValue := reflect.ValueOf(&dbCfg).Elem()
+
+            dbName := section.Name()[len("database_"):]
+
+            for i := 0; i < dbConfigType.NumField(); i++ {
+                field := dbConfigType.Field(i)
+                key := field.Tag.Get("json")
+
+                if key == "" {
+                    key = strings.ToLower(field.Name) // Fallback to using the struct field name
+                }
+
+                iniValue := section.Key(key).String()
+                if iniValue != "" {
+                    dbCfgValue.Field(i).SetString(iniValue)
+                }
+            }
+
+            // Assign the extracted database name to the Name field of DBConfig
+            dbCfg.Name = dbName
+
+            cfg.Databases = append(cfg.Databases, dbCfg)
+        }
+    }
+
+    return nil
 }
