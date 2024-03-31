@@ -1,11 +1,11 @@
 .TH PGROLECHECK 1
 .SH NAME
-pgrolecheck \- Check the roles of PostgreSQL servers.
+pgrolecheck \- Check the roles of PostgreSQL servers with enhanced security features.
 .SH SYNOPSIS
 .B pgrolecheck
 .RI [ options ]
 .SH DESCRIPTION
-pgrolecheck is a tool to check whether PostgreSQL servers are running as primary servers or standby replicas. It provides a web interface accessible over HTTP(S), offering a simple HTTP GET endpoint that returns the current roles of the PostgreSQL servers in JSON or CSV format.
+pgrolecheck is a tool to check whether PostgreSQL servers are running as primary servers or standby replicas. It provides a web interface accessible over HTTP(S), offering a simple HTTP GET endpoint that returns the current roles of the PostgreSQL servers in JSON, CSV, or simple text format, with support for IP whitelisting and token-based authentication.
 .SH OPTIONS
 .TP
 .B \-\-config
@@ -33,14 +33,12 @@ Path to the SSL private key file.
 Path to the log file. Set to "syslog" to use the system logger, or specify a file path.
 .TP
 .B \-\-outputformat
-Specifies the output format of the web service. Options are "json" (default) and "csv".
+Specifies the output format of the web service. Options are "json", "csv", and "simple".
 .TP
 .B \-f
 Run in foreground and log to STDOUT.
 .SH CONFIGURATION FILE
-The configuration file for pgrolecheck is located at
-.B /etc/pgrolecheck/pgrolecheck.conf
-. This file controls various aspects of pgrolecheck's behavior and can be overridden by command-line options.
+The configuration file for pgrolecheck is located at /etc/pgrolecheck/pgrolecheck.conf. This file controls various aspects of pgrolecheck's behavior, including database connections, server settings, logging, IP whitelisting, and token-based authentication, and can be overridden by command-line options.
 .PP
 The configuration file consists of several sections with specific parameters:
 .RS
@@ -50,53 +48,64 @@ Specifies the database connection parameters for multiple databases. Repeat the 
 .RS
 .TP
 .B dbname
-Name of the database to connect to. Essential for establishing the database connection.
+Name of the database to connect to.
 .TP
 .B user
-Database user for authentication. Required for accessing the database.
+Database user for authentication.
 .TP
 .B password
-Password for the specified database user. Ensure this is kept secure.
+Password for the specified user.
 .TP
 .B host
-Hostname or directory of the database server. Use a directory path for Unix domain socket connections or a hostname/IP for TCP/IP connections.
+Hostname or IP of the database server.
 .TP
 .B port
-Database server port. Essential for TCP/IP connections. For Unix domain sockets, this can be left empty or set to the default port (5432).
+Port number the database server listens on.
 .TP
 .B sslmode
-Determines SSL usage for the connection. Options: disable, require, verify-ca, verify-full. "disable" is common for local connections.
+SSL mode for the connection. Options: disable, require, verify-ca, verify-full.
 .RE
 .TP
 .B [server]
-Specifies the web server parameters for handling HTTP requests.
+Web server parameters.
 .RS
 .TP
 .B listen_ip
-IP address to bind the web server. "*" or "0.0.0.0" listens on all interfaces, whereas specifying an IP restricts it to that IP.
+IP address for the server to bind to.
 .TP
 .B use_ssl
-Enable SSL for the web server.
+Enable SSL for the server.
 .TP
 .B http_port
-Port number on which the server accepts HTTP(S) connections. Ensure this port is open in the firewall.
+Port for HTTP(S) connections.
 .TP
 .B cert_file
-Path to the SSL certificate file for HTTPS. Required for establishing secure connections.
+Path to the SSL certificate.
 .TP
 .B key_file
-Path to the SSL private key file. Must correspond to the certificate file for successful SSL encryption.
+Path to the SSL private key.
 .TP
 .B output_format
-Specifies the output format for the web service. Default is "json". Options: "json", "csv".
+Output format for the service. Options: "json", "csv", "simple".
+.RE
+.TP
+.B [security]
+Security settings including IP whitelisting and token-based authentication.
+.RS
+.TP
+.B ip_whitelist
+Comma-separated list of allowed IP addresses or CIDR blocks. If empty, all IPs are allowed.
+.TP
+.B auth_token
+A token required in the "Authorization" header of incoming requests. If empty, token authentication is disabled.
 .RE
 .TP
 .B [logging]
-Defines how pgrolecheck logs its operations.
+Logging configuration.
 .RS
 .TP
 .B log_file
-Path to where logs are written. Setting this to "syslog" uses the system logger. Otherwise, specify a filesystem path for logging to a file. Ensure the application has write permissions to the file or directory.
+Destination for log messages. Use "syslog" for the system logger, or a file path.
 .RE
 .SH FILES
 .TP

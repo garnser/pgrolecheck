@@ -6,6 +6,7 @@ import (
     "encoding/json"
     "net/http"
     "log"
+    "fmt"
     // other imports as necessary
 )
 
@@ -73,6 +74,10 @@ func CheckRoleHandler(w http.ResponseWriter, r *http.Request) {
             log.Println("Error flushing CSV data:", err)
             http.Error(w, "Failed to generate CSV output", http.StatusInternalServerError)
         }
+    } else if cfg.OutputFormat == "simple" {
+        for _, status := range results {
+            fmt.Fprintln(w, status.Status)
+        }	
     } else {
         // Generate and respond with JSON
         w.Header().Set("Content-Type", "application/json")

@@ -19,10 +19,16 @@ func SetupLogging(logFilePath string, foreground bool) *os.File {
     if logFilePath == "syslog" {
         logwriter, err := syslog.New(syslog.LOG_NOTICE, "pgrolecheck")
         if err != nil {
-            fmt.Println("Failed to initialize syslog:", err)
+	    fmt.Fprintf(os.Stderr, "Failed to initialize syslog: %v\n", err)
             os.Exit(1)
         }
         logOutput = logwriter
+       if foreground {
+            // In foreground mode, also log to stdout along with syslog
+            logOutput = io.MultiWriter(os.Stdout, logwriter)
+       } else {
+            logOutput = logwriter
+       }	
     } else if logFilePath != "" {
         var err error
         logFile, err = os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -36,7 +42,6 @@ func SetupLogging(logFilePath string, foreground bool) *os.File {
             logOutput = logFile
         }
     } else {
-        // If logFilePath is not defined, fallback to stdout
         fmt.Println("Debug: No LogFilePath specified, defaulting to stdout")
         logOutput = os.Stdout
     }

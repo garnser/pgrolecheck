@@ -25,6 +25,8 @@ type Configuration struct {
     LogFilePath  string `config:"log_file" section:"logging" default:"/var/log/pgrolecheck.log"`
     OutputFormat string `config:"output_format" section:"server" default:"json"`
     Databases    []DBConfig
+    IPWhitelist  []string `config:"ip_whitelist" section:"security" default:""`
+    AuthToken    string `config:"auth_token" section:"security" default:""`
 }
 
 type DBConfig struct {
@@ -129,6 +131,11 @@ func LoadConfigurationFromFile(path string) error {
 
             cfg.Databases = append(cfg.Databases, dbCfg)
         }
+    }
+
+    ipWhitelistStr := configFile.Section("security").Key("ip_whitelist").String()
+    if ipWhitelistStr != "" {
+        cfg.IPWhitelist = strings.Split(ipWhitelistStr, ",")
     }
 
     return nil
