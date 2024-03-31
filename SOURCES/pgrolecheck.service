@@ -4,13 +4,11 @@ After=network.target
 Documentation=https://github.com/garnser/pgrolecheck/blob/main/README.md
 
 [Service]
+Type=notify
 User=postgres
 Group=postgres
 ExecStart=/usr/local/bin/pgrolecheck
 Restart=on-failure
-CapabilityBoundingSet=CAP_NET_BIND_SERVICE
-ProtectSystem=full
-PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
