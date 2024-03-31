@@ -36,15 +36,34 @@ The service can be configured via the `pgrolecheck.conf` file, which allows spec
 - `https_port`: The port number for HTTPS connections.
 - `cert_file`: Path to the SSL certificate file.
 - `key_file`: Path to the SSL private key file.
+- `output_format`: Configures the format of the response from the server. Options are `json`, `simple`, or `csv`.
 
 #### Logging Configuration
 
 - `log_file`: Path to the log file. Set to "syslog" to use the system logger, or specify a file path.
 
+#### Security Configuration
+
+- `ip_whitelist`: A comma-separated list of IP addresses that are allowed to access the web interface. If left blank, all IPs are allowed.
+- `auth_token`: A token that must be provided in the `Authorization` header of requests for access.
+
+### Flags
+
+PgRoleCheck can be started with the following flags:
+
+- `-f`: Runs the application in the foreground, printing logs directly to STDOUT.
+- `-dbconfig`: Specifies a database instance to monitor in addition or instead of those specified in `pgrolecheck.conf` file.
+
+Example usage:
+
+\```bash
+pgrolecheck -f -dbconfig --dbconfig '{"Name":"database_db12","DbName":"postgres","User":"user","Password":"password","Host":"localhost","Port":"5432","SslMode":"disable"}'
+\```
+
 ### Sample Configuration
 
 ```ini
-[database]
+[database_name1]
 dbname=yourdbname
 user=youruser
 password=yourpassword
@@ -58,9 +77,14 @@ use_ssl=true
 https_port=8443
 cert_file=path/to/cert.pem
 key_file=path/to/key.pem
+output_format=json
 
 [logging]
 log_file=/var/log/pgrolecheck.log
+
+[security]
+ip_whitelist=192.168.1.100,192.168.1.101
+auth_token=someVerySecretToken
 ```
 
 ## Building
@@ -106,6 +130,26 @@ pgrolecheck -f
 
 ## Interacting with PgRoleCheck
 
+### Query Parameters
+
+- **`?dbname=`**: Specify a database name to check its role. Essential for environments monitoring multiple databases.
+
+### Possible Responses
+
+Responses vary by `output_format`:
+
+- **JSON Format**: `{"db1":{"status":"error","message":"pq: password authentication failed for user \"youruser\""}}`
+- **Simple Format**: Returns only the status (`primary`, `replica`, or `error`).
+- **CSV Format**: Provides `Name,Status,Message` for each database.
+
+## Security and Access Control
+
+Include the `auth_token` in the request header for API access:
+
+\```bash
+curl -H "Authorization: Bearer someVerySecretToken" https://localhost:8443/?dbname=primarydb
+\```
+
 PgRoleCheck provides a simple HTTP API that can be interacted with using tools like `curl`. Here's how you can use `curl` to check the role of a PostgreSQL server and the possible responses:
 
 ### Checking the Role
@@ -116,31 +160,12 @@ To check the role of a PostgreSQL server, send an HTTP GET request to the PgRole
 curl https://localhost:8443/
 ```
 
-### Possible Responses
-If the PostgreSQL server is running as a primary server, the response will be:
-```json
-{"status": "primary"}
-```
-
-If the PostgreSQL server is running as a standby replica, the response will be:
-```json
-{"status": "notprimary"}
-```
-
-If there is an error connecting to or querying the database, the response will be:
-```json
-{"status": "notok"}
-```
 
 ## Example Usage
 ```bash
 # Check the role of the PostgreSQL server
-$ curl https://localhost:8443/
-{"status": "primary"}
-
-# Check the role of the PostgreSQL server running as a standby replica
-$ curl https://localhost:8443/
-{"status": "notprimary"}
+curl -k https://127.0.0.1:8443
+{"db1":{"status":"primary",""}}
 ```
 
 You can use these responses to automate monitoring or integration with other systems.
