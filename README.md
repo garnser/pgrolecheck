@@ -172,6 +172,12 @@ You can use these responses to automate monitoring or integration with other sys
 
 Ensure you have configured `pgrolecheck.conf` according to your environment before starting the service.
 
+# Notes
+Consider increasing `/proc/sys/fs/inotify/max_user_watches` if you're getting the following error:
+```bash
+Failed to allocate directory watch: Too many open files
+```
+
 ## Contributing
 Contributions are welcome! Please feel free to submit pull requests or open issues to discuss potential improvements or features.
 
