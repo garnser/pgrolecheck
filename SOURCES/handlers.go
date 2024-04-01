@@ -20,6 +20,16 @@ func CheckRoleHandler(w http.ResponseWriter, r *http.Request) {
     query := r.URL.Query()
     dbname := query.Get("dbname")
 
+    // Parse and update the output format if specified in the query params
+    outputFormat := cfg.OutputFormat // default output format
+    if output := query.Get("output"); output != "" {
+        outputFormat = output
+    }
+
+    // Set the appropriate output format in the configuration
+    cfg.OutputFormat = outputFormat
+
+
     // Initialize a map to store the database statuses
     results := make(map[string]DBStatus)
 
@@ -77,7 +87,7 @@ func CheckRoleHandler(w http.ResponseWriter, r *http.Request) {
     } else if cfg.OutputFormat == "simple" {
         for _, status := range results {
             fmt.Fprintln(w, status.Status)
-        }	
+        }
     } else {
         // Generate and respond with JSON
         w.Header().Set("Content-Type", "application/json")
