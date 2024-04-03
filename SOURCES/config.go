@@ -7,6 +7,7 @@ import (
     "gopkg.in/ini.v1"
     "reflect"
     "strings"
+    "strconv"
 )
 
 var (
@@ -17,17 +18,17 @@ var (
 )
 
 type Configuration struct {
-    ListenIP     string `config:"listen_ip" section:"server" default:""`
-    UseSSL       bool `config:"use_ssl" section:"server" default:"false"`
-    HttpPort     string `config:"http_port" section:"server" default:"8080"`
-    CertFile     string `config:"cert_file" section:"server" default:""`
-    KeyFile      string `config:"key_file" section:"server" default:""`
-    LogFilePath  string `config:"log_file" section:"logging" default:"/var/log/pgrolecheck.log"`
-    OutputFormat string `config:"output_format" section:"server" default:"json"`
-    EnableAccessLog bool   `config:"enable_access_log" section:"logging" default:"true"`
-    Databases    []DBConfig
-    IPWhitelist  []string `config:"ip_whitelist" section:"security" default:""`
-    AuthToken    string `config:"auth_token" section:"security" default:""`
+    ListenIP     string `config:"listen_ip" section:"server" default:"" description:"The IP address on which the server will listen for incoming requests. Leave blank to listen on all interfaces."`
+    UseSSL       bool `config:"use_ssl" section:"server" default:"false" description:"Determines whether SSL is enabled. Set to true to enable SSL."`
+    HttpPort     string `config:"http_port" section:"server" default:"8080" description:"The port on which the server will listen for HTTP requests."`
+    CertFile     string `config:"cert_file" section:"server" default:"" description:"The file path to the SSL certificate. Required if SSL is enabled."`
+    KeyFile      string `config:"key_file" section:"server" default:"" description:"The file path to the SSL certificate key. Required if SSL is enabled."`
+    LogFilePath  string `config:"log_file" section:"logging" default:"/var/log/pgrolecheck.log" description:"The file path where logs will be written. Use 'syslog' for system log or leave blank for stdout."`
+    OutputFormat string `config:"output_format" section:"server" default:"json" description:"The format of the response returned by the server. Options are 'json', 'csv', or 'simple' text."`
+    EnableAccessLog bool   `config:"enable_access_log" section:"logging" default:"true" description:"Enables or disables HTTP access logging. Useful for monitoring and debugging."`
+    Databases    []DBConfig // This field doesn't directly correspond to a command-line argument or ini setting.
+    IPWhitelist  []string `config:"ip_whitelist" section:"security" default:"" description:"A comma-separated list of IP addresses or CIDR ranges that are allowed to access the server. Leave blank to allow all."`
+    AuthToken    string `config:"auth_token" section:"security" default:"" description:"The token that clients must provide for authentication. Leave blank to disable token authentication."`
 }
 
 type DBConfig struct {
@@ -64,13 +65,17 @@ func defineConfigurationFlags() {
     for i := 0; i < t.NumField(); i++ {
         field := t.Field(i)
         key, hasKey := field.Tag.Lookup("config")
+        description, hasDescription := field.Tag.Lookup("description")
         defaultValue, hasDefault := field.Tag.Lookup("default")
 
         if !hasKey || !hasDefault {
             continue
         }
 
-        description := fmt.Sprintf("Description for %s", key)
+        if !hasDescription {
+            description = fmt.Sprintf("No description for %s", key) // Fallback description
+        }
+
         switch field.Type.Kind() {
         case reflect.String:
             flag.StringVar(v.Field(i).Addr().Interface().(*string), key, defaultValue, description)

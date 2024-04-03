@@ -13,6 +13,8 @@ import (
 
 func main() {
 
+    defineConfigurationFlags()
+
     flag.Parse()
     fmt.Printf("Running in foreground: %v\n", Foreground)
 

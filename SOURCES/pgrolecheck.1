@@ -32,6 +32,9 @@ Path to the SSL private key file.
 .B \-\-logfile
 Path to the log file. Set to "syslog" to use the system logger, or specify a file path.
 .TP
+.B \-\-enable_access_log
+Enable access logging.
+.TP
 .B \-\-outputformat
 Specifies the output format of the web service. Options are "json", "csv", and "simple".
 .TP
@@ -106,6 +109,10 @@ Logging configuration.
 .TP
 .B log_file
 Destination for log messages. Use "syslog" for the system logger, or a file path.
+.RE
+.TP
+.B enable_access_log
+Enable access logging.
 .RE
 .SH FILES
 .TP

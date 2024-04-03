@@ -41,6 +41,7 @@ The service can be configured via the `pgrolecheck.conf` file, which allows spec
 #### Logging Configuration
 
 - `log_file`: Path to the log file. Set to "syslog" to use the system logger, or specify a file path.
+- `enable_access_log`: Enable access logging
 
 #### Security Configuration
 
@@ -81,6 +82,7 @@ output_format=json
 
 [logging]
 log_file=/var/log/pgrolecheck.log
+enable_access_log = true
 
 [security]
 ip_whitelist=192.168.1.100,192.168.1.101
@@ -133,6 +135,7 @@ pgrolecheck -f
 ### Query Parameters
 
 - **`?dbname=`**: Specify a database name to check its role. Essential for environments monitoring multiple databases.
+- **`?output=`**: Specify the output format overriding the default behaviour in the configuration.
 
 ### Possible Responses
 
