@@ -8,6 +8,7 @@ import (
     "net/http"
     "os"
     "encoding/json"
+    "github.com/coreos/go-systemd/daemon"
 )
 
 func main() {
@@ -40,24 +41,32 @@ func main() {
 
     fullListenAddr := listenAddr + ":" + cfg.HttpPort
 
-    http.Handle("/", IPWhitelistMiddleware(TokenAuthMiddleware(http.HandlerFunc(CheckRoleHandler))))
+    if cfg.EnableAccessLog {
+       http.Handle("/", LoggingMiddleware(IPWhitelistMiddleware(TokenAuthMiddleware(http.HandlerFunc(CheckRoleHandler)))))
+    } else {
+      http.Handle("/", IPWhitelistMiddleware(TokenAuthMiddleware(http.HandlerFunc(CheckRoleHandler))))
+    }
 
-//    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-//        CheckRoleHandler(w, r)
-//    })
-
-    // Adjust log message to reflect multiple databases
     log.Printf("Monitoring %d databases for role status", len(cfg.Databases))
 
-    if cfg.UseSSL == "true" {
+    invocationID := os.Getenv("INVOCATION_ID")
+    if invocationID != "" {
+       _, err := daemon.SdNotify(false, daemon.SdNotifyReady)
+       if err != nil {
+          log.Fatalf("Failed to notify systemd: %v\n", err)
+       }
+    }
+
+    if cfg.UseSSL {
         _, certErr := os.Stat(cfg.CertFile)
-	_, keyErr := os.Stat(cfg.KeyFile)
-	if os.IsNotExist(certErr) || os.IsNotExist(keyErr) {
-	   log.Fatalf("Certificate or key file does not exist.")
-	} else if certErr != nil || keyErr != nil {
+	      _, keyErr := os.Stat(cfg.KeyFile)
+
+	      if os.IsNotExist(certErr) || os.IsNotExist(keyErr) {
+	         log.Fatalf("Certificate or key file does not exist.")
+	      } else if certErr != nil || keyErr != nil {
        	   log.Fatalf("Error accessing certificate or key file: %v %v", certErr, keyErr)
-   	}
-	
+   	    }
+
         log.Printf("Starting HTTPS server on %s", fullListenAddr)
         if err := http.ListenAndServeTLS(fullListenAddr, cfg.CertFile, cfg.KeyFile, nil); err != nil {
             log.Fatalf("Failed to start HTTPS server: %v", err)

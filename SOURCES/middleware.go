@@ -3,6 +3,8 @@
 package main
 
 import (
+    "log"
+    "time"
     "net"
     "net/http"
     "strings"
@@ -43,6 +45,7 @@ func IsIPAllowed(ipAddr string, whitelist []string) bool {
     }
 
     // IP is not in the whitelist
+    log.Printf("IP Whitelist: %s isn't permitted to connect to the service", srcIP)
     return false
 }
 
@@ -84,4 +87,13 @@ func TokenAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
         // Token is valid or not required, proceed with the next handler
         next(w, r)
     }
+}
+
+// LoggingMiddleware logs details about each request including the method, URI, and duration.
+func LoggingMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        start := time.Now()
+        next.ServeHTTP(w, r)
+        log.Printf("Access log: %s %s %s %v", r.RemoteAddr, r.Method, r.URL.Path, time.Since(start))
+    })
 }

@@ -18,12 +18,13 @@ var (
 
 type Configuration struct {
     ListenIP     string `config:"listen_ip" section:"server" default:""`
-    UseSSL       string `config:"use_ssl" section:"server" default:"false"`
+    UseSSL       bool `config:"use_ssl" section:"server" default:"false"`
     HttpPort     string `config:"http_port" section:"server" default:"8080"`
     CertFile     string `config:"cert_file" section:"server" default:""`
     KeyFile      string `config:"key_file" section:"server" default:""`
     LogFilePath  string `config:"log_file" section:"logging" default:"/var/log/pgrolecheck.log"`
     OutputFormat string `config:"output_format" section:"server" default:"json"`
+    EnableAccessLog bool   `config:"enable_access_log" section:"logging" default:"true"`
     Databases    []DBConfig
     IPWhitelist  []string `config:"ip_whitelist" section:"security" default:""`
     AuthToken    string `config:"auth_token" section:"security" default:""`
@@ -73,6 +74,9 @@ func defineConfigurationFlags() {
         switch field.Type.Kind() {
         case reflect.String:
             flag.StringVar(v.Field(i).Addr().Interface().(*string), key, defaultValue, description)
+        case reflect.Bool:
+            defaultValueBool, _ := strconv.ParseBool(defaultValue) // safely ignore error, default is provided
+            flag.BoolVar(v.Field(i).Addr().Interface().(*bool), key, defaultValueBool, description)
         }
     }
 }

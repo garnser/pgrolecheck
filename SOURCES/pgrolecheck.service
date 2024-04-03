@@ -4,6 +4,7 @@ After=network.target
 Documentation=https://github.com/garnser/pgrolecheck/blob/main/README.md
 
 [Service]
+Type=notify
 User=postgres
 Group=postgres
 ExecStart=/usr/local/bin/pgrolecheck
