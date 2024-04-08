@@ -41,7 +41,7 @@ func main() {
 
     fullListenAddr := listenAddr + ":" + cfg.HttpPort
 
-    if cfg.EnableAccessLog {
+    if cfg.EnableAccessLog == "true" {
        http.Handle("/", LoggingMiddleware(IPWhitelistMiddleware(TokenAuthMiddleware(http.HandlerFunc(CheckRoleHandler)))))
     } else {
       http.Handle("/", IPWhitelistMiddleware(TokenAuthMiddleware(http.HandlerFunc(CheckRoleHandler))))
@@ -57,7 +57,7 @@ func main() {
        }
     }
 
-    if cfg.UseSSL {
+    if cfg.UseSSL == "true" {
         _, certErr := os.Stat(cfg.CertFile)
 	      _, keyErr := os.Stat(cfg.KeyFile)
 
