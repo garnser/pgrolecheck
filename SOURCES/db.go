@@ -28,7 +28,7 @@ func checkDatabaseRole(dbCfg DBConfig) (string, error) {
     }
 
     if isInRecovery {
-        return "notprimary", nil
+        return "replica", nil
     }
     return "primary", nil
 }
